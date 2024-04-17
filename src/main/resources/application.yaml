@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/lbswork
+    username: root
+    password: zyt622312
+# 设置后端服务绑定的IP地址
+
