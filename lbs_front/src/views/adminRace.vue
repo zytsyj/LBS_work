@@ -26,14 +26,7 @@ let clusterName=ref([
 
 let initId = ref(0)
 //初始化函数
-const pieces = []
-for (let i = 0; i < clusterName.value.length; i++) {
-  pieces.push({
-    value: i,
-    label: clusterName.value[i],
-    color: CLUSTER_COLORS[i]
-  });
-}
+let pieces = []
 
 const option = ref({
   xAxis: {},
@@ -90,6 +83,8 @@ function selectRace(id){
   Chart.setOption(option.value);
 }
 function load(){
+  clusterName.value = ['比赛']
+  pieces.value = [];
   let raceF=false, memberF=false
   data.value=[]
   request.get("/race/all").then((res)=>{
@@ -98,6 +93,13 @@ function load(){
     insertRace()
     raceF=true;
     if (raceF && memberF) {
+      for (let i = 0; i < clusterName.value.length; i++) {
+        pieces.push({
+          value: i,
+          label: clusterName.value[i],
+          color: CLUSTER_COLORS[i]
+        });
+      }
       selectRace(initId.value);
     }
   })
@@ -107,6 +109,13 @@ function load(){
     insertMember()
     memberF=true;
     if (raceF && memberF) {
+      for (let i = 0; i < clusterName.value.length; i++) {
+        pieces.push({
+          value: i,
+          label: clusterName.value[i],
+          color: CLUSTER_COLORS[i]
+        });
+      }
       selectRace(initId.value);
     }
   })
@@ -116,18 +125,6 @@ function load(){
 let timer = ref()
 let Chart = reactive()
 
-function init(){
-  option.value.series.data=data.value.map(item => ({
-    value: item.value,
-    itemStyle: {
-      color: CLUSTER_COLORS[item.cluster] // 根据聚类标签确定颜色
-    },
-    name: item.name // 设置点的名称
-  }))
-  console.log(3)
-  console.log(option.value.series.data)
-  Chart.setOption(option.value)
-}
 function insertRace(){
   for(let item in raceList.value){
     let value=[raceList.value[item].desx,raceList.value[item].desy];
