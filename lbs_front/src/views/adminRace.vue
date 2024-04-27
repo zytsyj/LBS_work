@@ -24,6 +24,7 @@ let clusterName=ref([
     "比赛"
 ])
 
+let initId = ref(0)
 //初始化函数
 const pieces = []
 for (let i = 0; i < clusterName.value.length; i++) {
@@ -65,6 +66,29 @@ const option = ref({
     data: null
   }
 });
+
+function selectRace(id){
+  if(id === 0){
+    option.value.series.data=data.value.map(item => ({
+      value: item.value,
+      itemStyle: {
+        color: CLUSTER_COLORS[item.cluster] // 根据聚类标签确定颜色
+      },
+      name: item.name // 设置点的名称
+    }))
+  } else {
+    initId.value = id
+    option.value.series.data= data.value.filter(item => item.raceId === id).map(item => ({
+      value: item.value,
+      itemStyle: {
+        color: CLUSTER_COLORS[item.cluster] // 根据聚类标签确定颜色
+      },
+      name: item.name // 设置点的名称
+    }));
+  }
+
+  Chart.setOption(option.value);
+}
 function load(){
   let raceF=false, memberF=false
   data.value=[]
@@ -74,7 +98,7 @@ function load(){
     insertRace()
     raceF=true;
     if (raceF && memberF) {
-      initChart(option.value);
+      selectRace(initId.value);
     }
   })
   request.get("/member/all").then((res)=>{
@@ -83,7 +107,7 @@ function load(){
     insertMember()
     memberF=true;
     if (raceF && memberF) {
-      initChart(option.value);
+      selectRace(initId.value);
     }
   })
 
@@ -92,10 +116,6 @@ function load(){
 let timer = ref()
 let Chart = reactive()
 
-function initChart(Option){
-  Chart = echarts.init(document.getElementById("main"));
-  Chart.setOption(Option);
-}
 function init(){
   option.value.series.data=data.value.map(item => ({
     value: item.value,
@@ -106,7 +126,7 @@ function init(){
   }))
   console.log(3)
   console.log(option.value.series.data)
-  initChart(option.value)
+  Chart.setOption(option.value)
 }
 function insertRace(){
   for(let item in raceList.value){
@@ -132,21 +152,17 @@ function insertMember(){
     data.value.push({value:value,cluster:cluster,name:name, raceId: memberList.value[i].raceid})
   }
 }
-function selectRace(id){
-  option.value.series.data= data.value.filter(item => item.raceId === id).map(item => ({
-    value: item.value,
-    itemStyle: {
-      color: CLUSTER_COLORS[item.cluster] // 根据聚类标签确定颜色
-    },
-    name: item.name // 设置点的名称
-  }));
-  initChart(option.value);
-}
+
 
 onMounted(()=>{
+  Chart = echarts.init(document.getElementById("main"));
   load()
   console.log(data.value)
   console.log(option.value)
+
+  timer.value=window.setInterval(() => {
+    setTimeout(load(),0)
+  },1000)
 })
 
 </script>
@@ -163,7 +179,8 @@ onMounted(()=>{
     <div style="display: flex">
       <div style="display: flex">
         <el-button-group>
-          <el-button @click="init()" type="info">所有比赛</el-button>
+          <el-button @click="load()" type="primary">手动加载(测试用)</el-button>
+          <el-button @click="selectRace(0)" type="info">所有比赛</el-button>
           <el-button v-for="race in raceList" @click="selectRace(race.raceId)" type="info">比赛{{race.raceId}}</el-button>
         </el-button-group>
 
